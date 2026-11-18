@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Topic;
 
 class Module extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['course_id', 'title', 'order'];
+    protected $fillable = ['course_id', 'title', 'description', 'order'];
 
     public function course()
     {
@@ -19,11 +18,12 @@ class Module extends Model
 
     public function topics()
     {
-        return $this->hasMany(Topic::class);
+        return $this->hasMany(Topic::class)->orderBy('order')->orderBy('id');
     }
 
-    public function tasks()
+    /** The final work of this module (at most one). */
+    public function task()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasOne(Task::class);
     }
 }
