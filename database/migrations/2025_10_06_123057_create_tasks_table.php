@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // The "final work" of a module: exactly one per module.
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('module_id')->constrained()->onDelete('cascade');
-            $table->string('title'); // название задачи
-            $table->text('instructions'); // описание
-            $table->integer('max_score')->default(100);
+            $table->foreignId('module_id')->unique()->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->text('instructions');
             $table->timestamps();
         });
-
     }
 
     /**

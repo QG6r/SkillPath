@@ -16,12 +16,15 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('description');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            // The teacher who reviews the final works of this course. Assigned by an admin.
+            $table->foreignId('teacher_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('thumbnail')->nullable();
-            $table->enum('level', ['beginner', 'intermediate', 'advanced']);
+            $table->enum('level', ['beginner', 'intermediate', 'advanced'])->default('beginner');
             $table->string('language')->default('English');
             $table->integer('duration')->nullable();
+            // Students only see published courses.
+            $table->boolean('is_published')->default(false);
             $table->timestamps();
         });
     }

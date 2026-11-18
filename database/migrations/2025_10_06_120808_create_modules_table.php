@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('modules', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('course_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            // Modules are passed in this order: module 2 opens after the final work of module 1 is accepted.
+            $table->unsignedInteger('order')->default(1);
             $table->timestamps();
         });
     }

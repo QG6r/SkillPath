@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  tests:
+    name: PHPUnit tests and front-end build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build the front end
+        run: npm run build
+
+      - name: Prepare the environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run the tests
+        run: php artisan test
+
+  docker:
+    name: Docker image builds and the site starts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start the stack
+        run: docker compose up -d --build
+
+      - name: Wait for the site
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:8000/up > /dev/null 2>&1; then
+              echo "up after $i tries"; exit 0
+            fi
+            sleep 3
+          done
+          docker compose logs app
+          exit 1
+
+      - name: Check the pages and the seeded data
+        run: |
+          curl -fsS http://localhost:8000/ | grep -q "SkillPath"
+          curl -fsS http://localhost:8000/login | grep -q "Login"
+          users=$(docker compose exec -T app php artisan tinker --execute="echo App\Models\User::count();")
+          courses=$(docker compose exec -T app php artisan tinker --execute="echo App\Models\Course::count();")
+          echo "users=$users courses=$courses"
+          test "$users" = "3"
+          test "$courses" = "1"
+
+      - name: Show logs when something failed
+        if: failure()
+        run: docker compose logs app

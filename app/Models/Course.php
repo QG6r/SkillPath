@@ -11,8 +11,15 @@ class Course extends Model
 
     protected $fillable = [
         'title', 'slug', 'description', 'category_id',
-        'instructor_id', 'thumbnail', 'level', 'language', 'duration'
+        'teacher_id', 'thumbnail', 'level', 'language', 'duration', 'is_published',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_published' => 'boolean',
+        ];
+    }
 
     public function category()
     {
@@ -21,12 +28,12 @@ class Course extends Model
 
     public function teacher()
     {
-        return $this->belongsTo(User::class, 'instructor_id');
+        return $this->belongsTo(User::class, 'teacher_id');
     }
 
     public function modules()
     {
-        return $this->hasMany(Module::class);
+        return $this->hasMany(Module::class)->orderBy('order')->orderBy('id');
     }
 
     public function students()

@@ -41,6 +41,8 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'student',
+            // There is no mail server in the demo, so a new account is treated as verified.
+            'email_verified_at' => now(),
         ]);
 
         event(new Registered($user));
